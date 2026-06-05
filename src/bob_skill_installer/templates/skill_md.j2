@@ -1,0 +1,66 @@
+{{ frontmatter }}
+# {{ title }}
+
+> Converted into an IBM Bob skill from a **{{ meta.converted_from.value }}** source by `bob-skill-installer`.
+> Source: {{ meta.source }}
+
+{% if content.role %}
+## Role
+
+{{ content.role }}
+
+{% endif %}
+## Objective
+
+{{ content.objective }}
+
+{% if content.workflow %}
+## Workflow
+
+{% for step in content.workflow %}{{ loop.index }}. {{ step }}
+{% endfor %}
+
+{% endif %}
+{% if content.instructions %}
+## Instructions
+
+{% for item in content.instructions %}- {{ item }}
+{% endfor %}
+
+{% endif %}
+{% if content.constraints %}
+## Constraints
+
+{% for item in content.constraints %}- {{ item }}
+{% endfor %}
+
+{% endif %}
+{% if content.tools %}
+## Tools
+
+{% for item in content.tools %}- {{ item }}
+{% endfor %}
+
+{% endif %}
+{% if content.mcp_references %}
+## MCP References
+
+> These MCP references were found in the source. They are listed for awareness only —
+> `bob-skill-installer` never auto-installs or auto-trusts an MCP server.
+
+{% for ref in content.mcp_references %}- `{{ ref }}`
+{% endfor %}
+
+{% endif %}
+{% if content.examples %}
+## Examples
+
+{% for ex in content.examples %}{{ ex }}
+
+{% endfor %}
+{% endif %}
+{% if has_docs %}
+## Source Material
+
+The original source content is preserved under [`docs/`](docs/) for reference.
+{% endif %}
