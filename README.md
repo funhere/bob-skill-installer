@@ -132,6 +132,3 @@ uv run mypy src               # type-check
 uv run ruff check .           # lint
 ```
 
-## License
-
-Apache-2.0. See [LICENSE](LICENSE).
