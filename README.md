@@ -56,6 +56,21 @@ install-skill <url> [options]
       --version         Show version and exit
 ```
 
+
+<img width="958" height="975" alt="image" src="https://github.com/user-attachments/assets/23596bed-1277-4afc-a3fe-4bd5db53672f" />
+
+<img width="583" height="477" alt="image" src="https://github.com/user-attachments/assets/d7e2e2a7-627e-4de8-a469-4c67075f16a3" />
+
+
+<img width="572" height="838" alt="image" src="https://github.com/user-attachments/assets/e219a347-02ad-4936-a96a-00dff374f463" />
+
+<img width="567" height="601" alt="image" src="https://github.com/user-attachments/assets/94ee1dec-df3c-43db-ba85-5dbf6c42fc03" />
+
+<img width="556" height="535" alt="image" src="https://github.com/user-attachments/assets/09e30ccb-a1fa-4368-8d5a-8099a4ac7b8c" />
+
+<img width="234" height="250" alt="image" src="https://github.com/user-attachments/assets/e0742cf5-5902-4963-b63c-e3a1f0f09c44" />
+
+
 ### Exit codes
 
 | Code | Meaning                         |
