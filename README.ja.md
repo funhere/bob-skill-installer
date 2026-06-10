@@ -75,9 +75,9 @@ install-skill https://github.com/org/react-skill --dry-run
 パイプラインは独立した8ステージで構成されています：
 
 ```
-URL
- │
- ▼
+      URL
+       │
+       ▼
 ┌──────────────┐
 │    parse     │  URL を分類 → ParsedSource
 └──────┬───────┘
