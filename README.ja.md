@@ -323,7 +323,10 @@ install-skill [URL] [OPTIONS]
 └─────────────────┘
 ```
 先ほどインストールした mcp-builder Skill を呼び出し、slack_mcp を生成します。
+
 <img width="588" height="683" alt="image" src="https://github.com/user-attachments/assets/157f8d72-2b02-4635-8679-d3b3dfb85253" />
+...
+<img width="561" height="631" alt="image" src="https://github.com/user-attachments/assets/ca7da473-1eac-46cd-8859-e1ea08f6f826" />
 
 
 ---
