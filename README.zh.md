@@ -75,9 +75,9 @@ install-skill https://github.com/org/react-skill --dry-run
 流水线包含 8 个独立的、类型化的阶段：
 
 ```
-URL
- │
- ▼
+      URL
+       │
+       ▼
 ┌──────────────┐
 │    parse     │  解析源 URL → ParsedSource
 └──────┬───────┘
