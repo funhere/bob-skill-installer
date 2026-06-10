@@ -8,17 +8,25 @@ your agent. `bob-skill-installer` treats every source as untrusted and is
 
 1. **Nothing from the source is ever executed.** Not during fetch, analysis,
    scanning, conversion, or install. Scripts are read as text, never run.
-2. **No executable scripts are copied into the installed skill.** Every script
-   file (`.sh`, `.bash`, `.ps1`, `.py`, `.js`, … or any file with an exec bit) is
-   *quarantined*: recorded in the report, excluded from the generated skill.
-3. **No MCP server is auto-installed or auto-trusted.** MCP references found in
+2. **Full-fidelity by default, with explicit opt-outs.** The installer aims to
+   produce a faithful 1:1 copy, so executable scripts and supporting files are
+   preserved by default. `--no-scripts` drops scripts; `--no-secrets` drops
+   secret files. Every script and secret bundled is reported as a warning so the
+   result is never silent.
+3. **Secrets are copied by default — and loudly flagged.** When a source contains
+   secret files (`.env`, `*.pem`, `id_rsa`, credential files, …) they are copied
+   and the report emits a `SECURITY:` warning telling the user not to publish the
+   skill. Pass `--no-secrets` to exclude them (detection keeps template variants
+   like `.env.example` / `*.pub`). The takeaway: **do not share a skill built
+   without `--no-secrets` from an untrusted or secret-bearing source.**
+4. **No MCP server is auto-installed or auto-trusted.** MCP references found in
    the source are surfaced in a `## MCP References` section for awareness only.
-4. **A blocking finding stops the install.** The skill is never written; the
+5. **A blocking finding stops the install.** The skill is never written; the
    report status is `REJECTED`.
-5. **ZIP extraction is path-traversal-safe and size-capped.** Entries that would
+6. **ZIP extraction is path-traversal-safe and size-capped.** Entries that would
    escape the destination are refused; total expansion is capped (zip-bomb
    defense). Subpaths that escape the repo root are refused.
-6. **Local-first.** The only network calls are the clone/download of the source
+7. **Local-first.** The only network calls are the clone/download of the source
    the user explicitly asked for. No telemetry, no accounts, no API keys.
 
 ## What gets rejected (blocking)
@@ -41,7 +49,8 @@ These are surfaced on the report but do not stop the install:
 | Category | Meaning |
 |----------|---------|
 | `browser-automation` | Headless browser launch (`puppeteer`/`playwright`/`selenium`) that may act without approval |
-| `quarantined-scripts` | Scripts found and excluded from the installed skill |
+| (script policy) | Scripts found; bundled by default or dropped via `--no-scripts` (reported by the pipeline) |
+| (secret policy) | Secret files found; copied by default (with a `SECURITY:` warning) or dropped via `--no-secrets` |
 | markdown / references | Cosmetic issues in the generated `SKILL.md` |
 
 ## Design choices
