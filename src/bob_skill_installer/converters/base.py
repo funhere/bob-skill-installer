@@ -30,12 +30,16 @@ from bob_skill_installer.models import (
     SkillMetadata,
     slugify,
 )
+from bob_skill_installer.security import is_sensitive_path
 
 _log = get_logger("converter")
 
-# Files we copy into the generated skill's docs/ as reference material.
-_DOC_EXTS = {".md", ".mdc", ".markdown", ".txt", ".rst"}
-_MAX_DOC_BYTES = 1024 * 1024
+# Per-file ceiling for copied source material (keeps a stray large binary from
+# bloating the installed skill). Larger files are skipped with a log note.
+_MAX_FILE_BYTES = 8 * 1024 * 1024
+
+# OS/editor junk we never carry into a clean skill.
+_JUNK_NAMES = {".DS_Store", "Thumbs.db", "desktop.ini"}
 
 
 class ConversionContext(BaseModel):
@@ -45,7 +49,10 @@ class ConversionContext(BaseModel):
     name_override: str | None = None
     author_override: str | None = None
     version_override: str | None = None
-    quarantined_scripts: list[str] = []
+    #: Full-fidelity by default: every supporting file is preserved. Set these to
+    #: drop executable scripts / secret files from the installed skill.
+    exclude_scripts: bool = False
+    exclude_secrets: bool = False
 
 
 def _render_frontmatter(metadata: SkillMetadata) -> str:
@@ -120,11 +127,19 @@ class BaseConverter(abc.ABC):
 
         content = extract_content(documents, fallback_objective="Converted skill.")
         metadata = self._build_metadata(analysis, ctx, sources[0])
-        files = self._collect_docs(analysis, sources)
-        skill_md = self._render(metadata, content, has_docs=bool(files))
+        files = self._collect_files(
+            analysis,
+            sources,
+            exclude_scripts=ctx.exclude_scripts,
+            exclude_secrets=ctx.exclude_secrets,
+        )
+        skill_md = self._render(metadata, content, bundled_count=len(files))
 
         _log.info(
-            "Converted [bold]%s[/bold] -> skill '%s'", self.source_format.value, metadata.name
+            "Converted [bold]%s[/bold] -> skill '%s' (%d bundled file(s))",
+            self.source_format.value,
+            metadata.name,
+            len(files),
         )
         return BobSkill(metadata=metadata, skill_md=skill_md, files=files)
 
@@ -162,14 +177,16 @@ class BaseConverter(abc.ABC):
             converted_from=self.source_format,
         )
 
-    def _render(self, metadata: SkillMetadata, content: ExtractedContent, *, has_docs: bool) -> str:
+    def _render(
+        self, metadata: SkillMetadata, content: ExtractedContent, *, bundled_count: int
+    ) -> str:
         template = _jinja_env().get_template("skill_md.j2")
         title = metadata.name.replace("-", " ").title()
         rendered = template.render(
             meta=metadata,
             content=content,
             title=title,
-            has_docs=has_docs,
+            bundled_count=bundled_count,
             frontmatter=_render_frontmatter(metadata),
         )
         # Collapse 3+ blank lines that the conditional template blocks can leave.
@@ -177,24 +194,46 @@ class BaseConverter(abc.ABC):
             rendered = rendered.replace("\n\n\n", "\n\n")
         return rendered
 
-    def _collect_docs(self, analysis: RepoAnalysis, sources: list[Path]) -> list[GeneratedFile]:
-        """Copy non-executable reference docs into ``docs/`` (scripts excluded)."""
+    def _collect_files(
+        self,
+        analysis: RepoAnalysis,
+        sources: list[Path],
+        *,
+        exclude_scripts: bool,
+        exclude_secrets: bool,
+    ) -> list[GeneratedFile]:
+        """Preserve every supporting source file at its **original** relative path.
+
+        Full-fidelity by default: references, assets, data files, helper scripts,
+        and config all land where the skill expects them, so internal links keep
+        resolving. The primary document(s) consumed into ``SKILL.md`` are skipped
+        to avoid duplication. ``exclude_scripts`` / ``exclude_secrets`` drop those
+        categories when the caller asks. OS junk (``.DS_Store``) is never copied.
+        """
         files: list[GeneratedFile] = []
-        seen: set[Path] = set()
-        for path in analysis.markdown_files:
-            if path in sources or path in seen:
+        consumed = set(sources)
+        scripts = set(analysis.script_files)
+        for path in analysis.all_files:
+            if path in consumed:
                 continue
-            if path.suffix.lower() not in _DOC_EXTS:
-                continue
-            try:
-                if path.stat().st_size > _MAX_DOC_BYTES:
-                    continue
-                text = path.read_text(encoding="utf-8", errors="ignore")
-            except OSError:  # pragma: no cover
+            if exclude_scripts and path in scripts:
                 continue
             rel = path.relative_to(analysis.root)
-            files.append(GeneratedFile(relative_path=Path("docs") / rel, content=text))
-            seen.add(path)
+            # Never let a crafted path escape the skill root.
+            if rel.is_absolute() or ".." in rel.parts:
+                continue
+            if rel.name in _JUNK_NAMES:
+                continue
+            if exclude_secrets and is_sensitive_path(rel):
+                continue
+            try:
+                if path.stat().st_size > _MAX_FILE_BYTES:
+                    _log.debug("Skipping oversized file (> cap): %s", rel)
+                    continue
+                data = path.read_bytes()
+            except OSError:  # pragma: no cover - race on read
+                continue
+            files.append(GeneratedFile.binary(rel, data))
         return files
 
 

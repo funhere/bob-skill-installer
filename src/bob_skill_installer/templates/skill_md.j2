@@ -59,8 +59,9 @@
 
 {% endfor %}
 {% endif %}
-{% if has_docs %}
-## Source Material
+{% if bundled_count %}
+## Bundled Files
 
-The original source content is preserved under [`docs/`](docs/) for reference.
+This skill bundles {{ bundled_count }} supporting file(s) from the original
+source, preserved at their original relative paths next to this `SKILL.md`.
 {% endif %}

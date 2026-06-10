@@ -49,6 +49,8 @@ class PipelineOptions(BaseModel):
     version: str | None = None
     overwrite: bool = False
     upgrade: bool = False
+    exclude_scripts: bool = False
+    exclude_secrets: bool = False
     project_root: Path | None = None
     dry_run: bool = False
     clone_depth: int = 1
@@ -78,13 +80,34 @@ def run_install(opts: PipelineOptions) -> InstallReport:
 
         warnings = [f.message for f in security.findings if not f.is_blocking]
 
+        # --- File-inclusion policy (full-fidelity by default) -------------- #
+        if security.scripts:
+            n = len(security.scripts)
+            if opts.exclude_scripts:
+                warnings.append(f"{n} executable script(s) were excluded (--no-scripts).")
+            else:
+                warnings.append(
+                    f"{n} executable script(s) were bundled (passed the security scan) — "
+                    "review them before running. Use --no-scripts to exclude."
+                )
+        if security.sensitive_files:
+            n = len(security.sensitive_files)
+            if opts.exclude_secrets:
+                warnings.append(f"{n} potential secret file(s) were excluded (--no-secrets).")
+            else:
+                warnings.append(
+                    f"SECURITY: {n} potential secret file(s) (e.g. .env / keys) were COPIED "
+                    "into the skill. Do NOT share or publish it. Use --no-secrets to exclude."
+                )
+
         # --- Convert ------------------------------------------------------- #
         ctx = ConversionContext(
             source_url=opts.source_url,
             name_override=opts.name,
             author_override=opts.author,
             version_override=opts.version,
-            quarantined_scripts=security.quarantined_scripts,
+            exclude_scripts=opts.exclude_scripts,
+            exclude_secrets=opts.exclude_secrets,
         )
         skill = convert(analysis, ctx)
 

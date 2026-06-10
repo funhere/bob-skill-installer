@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from bob_skill_installer.security.scanner import scan_source
+from bob_skill_installer.security.scanner import is_sensitive_path, scan_source
 
-__all__ = ["scan_source"]
+__all__ = ["is_sensitive_path", "scan_source"]

@@ -83,12 +83,13 @@ class SkillInstaller:
 
         (staging / "SKILL.md").write_text(skill.skill_md, encoding="utf-8")
 
+        staging_root = staging.resolve()
         for gen in skill.files:
             dest = (staging / gen.relative_path).resolve()
-            if not str(dest).startswith(str(staging.resolve())):
+            if dest != staging_root and staging_root not in dest.parents:
                 raise InstallError(f"Generated file escapes skill root: {gen.relative_path}")
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(gen.content, encoding="utf-8")
+            dest.write_bytes(gen.data)
 
         # Keep empty scaffold dirs present in version control / archives.
         for sub in _SCAFFOLD_DIRS:

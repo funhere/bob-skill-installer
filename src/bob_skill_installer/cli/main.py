@@ -51,6 +51,12 @@ def install(  # noqa: PLR0913 - a CLI surface legitimately has many flags
     upgrade: bool = typer.Option(
         False, "--upgrade", "-u", help="Replace an existing skill, keeping a .bak."
     ),
+    no_scripts: bool = typer.Option(
+        False, "--no-scripts", help="Exclude the source's executable scripts (included by default)."
+    ),
+    no_secrets: bool = typer.Option(
+        False, "--no-secrets", help="Exclude secret files like .env / keys (included by default)."
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Run every stage but do not write."),
     json_out: bool = typer.Option(False, "--json", help="Emit the report as plain text on stdout."),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable debug logging."),
@@ -78,6 +84,8 @@ def install(  # noqa: PLR0913 - a CLI surface legitimately has many flags
         version=version,
         overwrite=force,
         upgrade=upgrade,
+        exclude_scripts=no_scripts,
+        exclude_secrets=no_secrets,
         dry_run=dry_run,
     )
 

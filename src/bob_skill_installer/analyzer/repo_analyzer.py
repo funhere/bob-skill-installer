@@ -40,15 +40,15 @@ def analyze_repo(root: Path) -> RepoAnalysis:
     if not root.is_dir():
         raise AnalysisError(f"Analysis root is not a directory: {root}")
 
+    all_files: list[Path] = []
     text_files: list[Path] = []
     markdown_files: list[Path] = []
     script_files: list[Path] = []
-    file_count = 0
 
     for path in sorted(root.rglob("*")):
         if path.is_dir() or _is_ignored(path, root):
             continue
-        file_count += 1
+        all_files.append(path)
         suffix = path.suffix.lower()
         if suffix in _TEXT_EXTS:
             text_files.append(path)
@@ -57,6 +57,7 @@ def analyze_repo(root: Path) -> RepoAnalysis:
         if suffix in _SCRIPT_EXTS or _is_executable(path):
             script_files.append(path)
 
+    file_count = len(all_files)
     if file_count == 0:
         raise AnalysisError(f"Source tree {root} is empty.")
 
@@ -66,6 +67,7 @@ def analyze_repo(root: Path) -> RepoAnalysis:
     analysis = RepoAnalysis(
         root=root,
         file_count=file_count,
+        all_files=all_files,
         text_files=text_files,
         markdown_files=markdown_files,
         script_files=script_files,

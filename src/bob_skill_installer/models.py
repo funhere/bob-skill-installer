@@ -126,6 +126,7 @@ class RepoAnalysis(BaseModel):
 
     root: Path
     file_count: int
+    all_files: list[Path] = Field(default_factory=list)
     text_files: list[Path] = Field(default_factory=list)
     markdown_files: list[Path] = Field(default_factory=list)
     script_files: list[Path] = Field(default_factory=list)
@@ -196,12 +197,29 @@ class SkillMetadata(BaseModel):
 
 
 class GeneratedFile(BaseModel):
-    """A non-SKILL.md file to write alongside the skill (docs/examples/etc.)."""
+    """A file to write alongside the generated ``SKILL.md``.
+
+    Holds raw bytes so binary assets (images, archives, fonts) are preserved
+    faithfully; text helpers handle the common UTF-8 case.
+    """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     relative_path: Path
-    content: str
+    data: bytes
+
+    @classmethod
+    def text(cls, relative_path: Path, content: str) -> GeneratedFile:
+        return cls(relative_path=relative_path, data=content.encode("utf-8"))
+
+    @classmethod
+    def binary(cls, relative_path: Path, data: bytes) -> GeneratedFile:
+        return cls(relative_path=relative_path, data=data)
+
+    @property
+    def text_content(self) -> str:
+        """Best-effort text view (used by tests and link checks)."""
+        return self.data.decode("utf-8", errors="replace")
 
 
 class BobSkill(BaseModel):
@@ -251,10 +269,16 @@ class ValidationResult(BaseModel):
 
 
 class SecurityReport(BaseModel):
-    """Outcome of the security scan over the *source* tree."""
+    """Outcome of the security scan over the *source* tree.
+
+    ``scripts`` and ``sensitive_files`` are inventories of what was *found*; the
+    decision to copy or exclude them is an install-policy concern handled by the
+    pipeline (``--no-scripts`` / ``--no-secrets``).
+    """
 
     findings: list[Finding] = Field(default_factory=list)
-    quarantined_scripts: list[str] = Field(default_factory=list)
+    scripts: list[str] = Field(default_factory=list)
+    sensitive_files: list[str] = Field(default_factory=list)
 
     @property
     def blocking(self) -> list[Finding]:
