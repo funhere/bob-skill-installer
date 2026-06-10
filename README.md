@@ -1,134 +1,368 @@
 # bob-skill-installer
 
-> Download, analyze, convert, validate, and install third-party open-source AI
-> skills into **IBM Bob** — with one command.
+> **One command. Any skill. Into IBM Bob.**
 
-`bob-skill-installer` powers the IBM Bob `/install-skill` slash command. Point it
-at a public Git repository or a ZIP, and it fetches the source, recognizes its
-format (Claude, Cursor, Windsurf, Cline, RooCode, OpenAI-GPT, or a generic prompt
-repo), converts it into a valid IBM Bob skill, runs a static security scan,
-validates the result, and installs it into `.bob/skills/`.
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-141%20passed-brightgreen.svg)]()
+[![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen.svg)]()
+[![mypy: strict](https://img.shields.io/badge/mypy-strict-blue.svg)]()
+[![ruff](https://img.shields.io/badge/ruff-passing-blue.svg)]()
 
-It is **local-first and safe-by-default**: it never executes remote code, never
-auto-trusts an MCP server, and never copies executable scripts into the
-installed skill.
+[日本語](README.ja.md) | [中文](README.zh.md)
+
+---
+
+`bob-skill-installer` powers the IBM Bob `/install-skill` slash command.  
+Point it at a public GitHub/GitLab/Git repository or a ZIP URL, and it automatically fetches, analyzes, converts, validates, and installs the skill into IBM Bob — with zero manual steps.
+
+```bash
+install-skill https://github.com/awesome-skills/react-architect --project
+```
+
+That's it.
+
+---
+
+## Features
+
+- **Universal source support** — GitHub, GitLab, generic Git, direct ZIP, local directory
+- **7 format converters** — Claude, Cursor, Windsurf, Cline, RooCode, OpenAI GPT, generic prompt repos
+- **Full-fidelity install** — every file preserved at its original path, binary-safe
+- **Security gate** — blocks `curl | bash`, credential exfiltration, destructive shell, MCP auto-trust before anything is written
+- **Atomic install** — staged write + swap; `--upgrade` keeps a `.bak`; no half-written skills on crash
+- **IBM Bob slash command** — confirm-first conversational flow with `anysearch`-powered repo understanding
+- **Enterprise-grade quality** — `mypy --strict`, `ruff`, 141 tests, 92% coverage
 
 ---
 
 ## Quickstart
 
+### Prerequisites
+
+- Python 3.12 or higher
+- [`uv`](https://docs.astral.sh/uv/) (recommended) or `pip`
+- Git (for cloning remote repositories)
+
+### Install
+
 ```bash
-# Install the tool (editable, with dev extras)
+git clone https://github.com/funhere/bob-skill-installer
+cd bob-skill-installer
 uv pip install -e ".[dev]"
-
-# Install a skill into the current project (./.bob/skills)
-install-skill https://github.com/example/react-skill
-
-# Install globally (~/.bob/skills)
-install-skill https://github.com/example/react-skill --global
-
-# Preview without writing anything
-install-skill https://github.com/example/react-skill --dry-run
 ```
 
-From inside IBM Bob, use the slash command instead:
+### Your first skill
 
-```text
-/install-skill https://github.com/example/react-skill --global
+```bash
+# Install into the current project (./.bob/skills/)
+install-skill https://github.com/org/react-skill
+
+# Install globally (~/.bob/skills/)
+install-skill https://github.com/org/react-skill --global
+
+# Preview everything without writing to disk
+install-skill https://github.com/org/react-skill --dry-run
+
+# From inside IBM Bob (slash command)
+/install-skill https://github.com/org/react-skill --project
 ```
 
-## CLI reference
+---
 
-```text
-install-skill <url> [options]
+## How It Works
 
-  -g, --global          Install to ~/.bob/skills (user-global)
-  -p, --project         Install to ./.bob/skills (default)
-      --name TEXT       Override the generated skill name
-      --author TEXT     Override the skill author
-      --skill-version   Override the skill version
-  -f, --force           Overwrite an existing skill
-  -u, --upgrade         Replace an existing skill, keeping a .bak
-      --dry-run         Run every stage but do not write
-      --json            Emit the report as plain text on stdout
-  -v, --verbose         Debug logging
-      --log-file PATH   Also write logs to a rotating file
-      --version         Show version and exit
+The pipeline runs 8 independent, typed stages:
+
+```
+URL
+ │
+ ▼
+┌──────────────┐
+│    parse     │  Classify the source URL → ParsedSource
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│    fetch     │  Shallow git clone or safe ZIP extract → local dir
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│   analyze    │  Walk the file tree, score the format → RepoAnalysis
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│   security   │  Static pattern scan → SecurityReport
+└──────┬───────┘   REJECTED here → nothing is installed
+       ▼
+┌──────────────┐
+│   convert    │  Format-specific → BobSkill + SKILL.md
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│   validate   │  Structure · metadata · markdown · links
+└──────┬───────┘   FAILED here → nothing is installed
+       ▼
+┌──────────────┐
+│   install    │  Atomic staged write → skill directory
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│   report     │  Rich panel or plain-text summary
+└──────────────┘
 ```
 
+Each stage has a typed Pydantic model as its contract — independently testable, independently replaceable.
 
-<img width="958" height="975" alt="image" src="https://github.com/user-attachments/assets/23596bed-1277-4afc-a3fe-4bd5db53672f" />
+| Stage | Module | Responsibility |
+|---|---|---|
+| parse | `github/url_parser.py` | URL → `ParsedSource` |
+| fetch | `github/fetcher.py` | clone / ZIP / local copy |
+| analyze | `analyzer/` | file inventory + format scoring |
+| security | `security/scanner.py` | pattern scan, inventory scripts & secrets |
+| convert | `converters/` | 7 format converters + Jinja2 template |
+| validate | `validators/` | structure, metadata, markdown, links |
+| install | `installer/installer.py` | atomic write, `--force` / `--upgrade` |
+| report | `report.py` | Rich + plain-text report |
 
-<img width="583" height="477" alt="image" src="https://github.com/user-attachments/assets/d7e2e2a7-627e-4de8-a469-4c67075f16a3" />
+---
 
+## Supported Sources & Formats
 
-<img width="572" height="838" alt="image" src="https://github.com/user-attachments/assets/e219a347-02ad-4936-a96a-00dff374f463" />
+### Sources (priority order)
 
-<img width="567" height="601" alt="image" src="https://github.com/user-attachments/assets/94ee1dec-df3c-43db-ba85-5dbf6c42fc03" />
+| Source | Example |
+|---|---|
+| GitHub repository | `https://github.com/org/repo` |
+| GitHub subtree | `https://github.com/org/repo/tree/main/skills/writer` |
+| GitLab repository | `https://gitlab.com/org/repo` |
+| Generic Git | `https://git.example.com/repo.git` |
+| Direct ZIP URL | `https://example.com/skill.zip` |
+| Local directory | `./examples/sample-claude-skill` |
 
-<img width="556" height="535" alt="image" src="https://github.com/user-attachments/assets/09e30ccb-a1fa-4368-8d5a-8099a4ac7b8c" />
+### Formats (priority order)
 
-<img width="234" height="250" alt="image" src="https://github.com/user-attachments/assets/e0742cf5-5902-4963-b63c-e3a1f0f09c44" />
+| Format | Detection markers |
+|---|---|
+| **Claude** | `CLAUDE.md`, `SKILL.md`, `.claude/skills/` |
+| **Cursor** | `.cursorrules`, `.cursor/rules/*.mdc` |
+| **Windsurf** | `.windsurfrules`, `.windsurf/` |
+| **Cline** | `.clinerules`, `.cline/` |
+| **RooCode** | `.roomodes`, `.roo/` |
+| **OpenAI GPT** | `instructions.md`, `prompt.md` |
+| **Generic** | `README.md`, `prompts/` |
 
+Format detection is evidence-based: multiple markers contribute weighted scores, so mixed repos always resolve to the best match.
 
-### Exit codes
+---
 
-| Code | Meaning                         |
-|------|---------------------------------|
-| 0    | Success (with or without warnings) |
-| 2    | Invalid source URL / bad flags  |
-| 3    | Fetch (clone/download) failed   |
-| 7    | Generated skill failed validation |
-| 8    | Rejected by the security scan   |
-
-## How it works
-
-```text
-parse → fetch → analyze → security-scan → convert → validate → install → report
-```
-
-Each stage is an independently testable module under `src/bob_skill_installer/`:
-
-| Stage      | Module            | Responsibility |
-|------------|-------------------|----------------|
-| parse      | `github/url_parser.py` | Classify GitHub/GitLab/git/ZIP URLs |
-| fetch      | `github/fetcher.py`    | Shallow clone or safe ZIP extract |
-| analyze    | `analyzer/`            | Walk the tree, score the format |
-| security   | `security/scanner.py`  | Reject dangerous payloads, quarantine scripts |
-| convert    | `converters/`          | Format-specific → Bob `SKILL.md` |
-| validate   | `validators/`          | Structure, metadata, markdown, links |
-| install    | `installer/installer.py` | Atomic write to the scope target |
-| report     | `report.py`            | Rich + plain-text install report |
-
-See [`docs/architecture.md`](docs/architecture.md) for the full design and
-[`docs/security.md`](docs/security.md) for the threat model.
-
-## Generated skill layout
+## Generated Skill Layout
 
 ```text
 .bob/skills/<name>/
-├── SKILL.md        # name, description, version, source, author,
-│                   # converted_from, created_at (+ converted body)
-├── docs/           # original source material, preserved
+├── SKILL.md           ← converted skill (YAML frontmatter + Markdown body)
+├── docs/              ← Bob conventional scaffold
 ├── examples/
 ├── templates/
-└── assets/
+├── assets/
+├── <original files>   ← every source file preserved at its original path
+└── scripts/           ← included by default; use --no-scripts to drop
 ```
 
-## Supported sources & formats
+**Full-fidelity by default.** Every file from the source — including scripts, `.env`, configuration, images, and data — is preserved at its original relative path so the skill stays intact and internal links keep resolving.
 
-**Sources** (priority order): GitHub → GitLab → generic Git → direct `.zip` URL.
+> ⚠️ **Secrets notice:** If the source contains a real `.env` or private key, it will be copied by default. The report emits a prominent `SECURITY:` warning. Use `--no-secrets` for any skill you intend to share or publish.
 
-**Formats** (priority order): Claude → Cursor → Windsurf → Cline → RooCode →
-OpenAI GPT → generic prompt repository.
+### Generated `SKILL.md` example
+
+```yaml
+---
+name: react-architect
+description: 'Expert React architecture: patterns, state management, and performance.'
+version: 2.1.0
+source: https://github.com/org/react-skill
+author: Jane Dev
+converted_from: claude
+created_at: 2026-06-02T09:01:07Z
+---
+
+# React Architect
+
+## Role
+You are a senior React architect who reviews component design.
+
+## Objective
+Help engineers structure scalable React applications.
+
+## Workflow
+1. Inspect the component tree
+2. Identify state-management smells
+3. Propose the minimal refactor
+
+## Constraints
+- Do not recommend class components
+- Avoid premature memoization
+```
+
+Frontmatter is serialized with `yaml.safe_dump`, so descriptions containing colons, quotes, or non-ASCII characters are always valid YAML.
+
+---
+
+## Security Model
+
+The security scanner runs **before** any conversion or installation. A single blocking finding causes an immediate `REJECTED` — nothing is written.
+
+### What gets blocked (install stops)
+
+| Category | Examples |
+|---|---|
+| `remote-exec` | `curl … \| bash`, `wget … \| sh`, `bash <(curl …)`, `eval "$(curl …)"` |
+| `remote-exec` | PowerShell `IEX (… DownloadString …)` |
+| `destructive-shell` | `rm -rf /`, `rm -rf ~`, `rm -rf $HOME` |
+| `credential-harvesting` | Reading `~/.ssh/id_*`, `~/.aws/credentials`, `id_rsa` |
+| `secret-exfiltration` | `printenv \| curl`, posting `$TOKEN`/`$SECRET` over the network |
+| `mcp-auto-trust` | `mcp install … --yes`, `"autoApprove": true` |
+
+### What gets warned (install continues)
+
+| Category | Meaning |
+|---|---|
+| `browser-automation` | Headless browser launch without explicit approval |
+| script policy | Scripts bundled (default) or excluded (`--no-scripts`) |
+| secret policy | Secret files bundled with `SECURITY:` warning, or excluded (`--no-secrets`) |
+
+Nothing from the source is ever executed. Scripts are read as text, never run.
+
+---
+
+## CLI Reference
+
+```text
+install-skill [URL] [OPTIONS]
+```
+
+| Option | Short | Default | Description |
+|---|---|---|---|
+| `--global` | `-g` | — | Install to `~/.bob/skills/` |
+| `--project` | `-p` | ✓ | Install to `./.bob/skills/` |
+| `--name TEXT` | | derived | Override the skill name (slug) |
+| `--author TEXT` | | from source | Override the author |
+| `--skill-version TEXT` | | from source | Override the version |
+| `--force` | `-f` | — | Overwrite an existing skill |
+| `--upgrade` | `-u` | — | Replace skill, keeping a `.bak` |
+| `--no-scripts` | | — | Exclude executable scripts |
+| `--no-secrets` | | — | Exclude `.env` / key files |
+| `--dry-run` | | — | Run all stages but do not write |
+| `--json` | | — | Plain-text report (no Rich colors) |
+| `--verbose` | `-v` | — | Debug logging |
+| `--log-file PATH` | | — | Also write logs to a rotating file |
+| `--version` | | — | Show version and exit |
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Success (with or without warnings) |
+| `2` | Invalid source URL or conflicting flags |
+| `3` | Fetch failed (clone error, network, bad ZIP) |
+| `7` | Generated skill failed validation |
+| `8` | Rejected by the security scan |
+
+---
+
+## IBM Bob Slash Command
+
+The `/install-skill` Bob slash command (`.bob/commands/install-skill.md`) wraps the CLI with a conversational confirm-first flow:
+
+1. **Parse** — extract URL and scope from the user message
+2. **Confirm** — ask the user to approve source, target, and overwrite policy
+3. **Understand** — invoke `anysearch` to summarize the repository
+4. **Security review** — agent checks for obvious red flags before the scan
+5. **Convert & install** — call the CLI
+6. **Report** — surface the install report to the user
+
+```text
+/install-skill https://github.com/org/react-skill --project
+/install-skill https://github.com/org/react-skill --global --no-secrets
+```
+
+---
+
+## Project Structure
+
+```text
+bob-skill-installer/
+├── src/bob_skill_installer/
+│   ├── models.py              ← shared Pydantic models (pipeline contract)
+│   ├── exceptions.py          ← typed exception hierarchy with exit_codes
+│   ├── logging_config.py      ← Rich-based logging (console + rotating file)
+│   ├── report.py              ← Rich panel + plain-text install report
+│   ├── github/                ← URL parsing + git clone / ZIP fetch / local copy
+│   ├── analyzer/              ← file tree walk + evidence-scored format detection
+│   ├── converters/            ← 7 format converters + Jinja2 SKILL.md template
+│   ├── security/              ← pattern scanner + sensitive-file detection
+│   ├── validators/            ← structure / metadata / markdown / link checks
+│   ├── installer/             ← atomic install + 8-stage pipeline orchestration
+│   ├── templates/             ← skill_md.j2 Jinja2 template
+│   └── cli/                   ← Typer CLI
+├── tests/
+│   ├── unit/                  ← 9 unit test files
+│   └── integration/           ← 2 integration test files (offline, patched fetcher)
+├── .bob/
+│   ├── commands/install-skill.md  ← Bob slash command definition
+│   └── skills/                    ← project-scope install target
+├── docs/
+│   ├── architecture.md
+│   └── security.md
+└── examples/
+    ├── sample-claude-skill/
+    └── sample-cursor-skill/
+```
+
+---
 
 ## Development
 
 ```bash
+# Install with dev extras
 uv pip install -e ".[dev]"
-uv run pytest                 # run the suite
-uv run pytest --cov           # with coverage
-uv run mypy src               # type-check
-uv run ruff check .           # lint
+
+# Run tests
+uv run pytest
+
+# Run tests with coverage report
+uv run pytest --cov
+
+# Type-check (strict)
+uv run mypy src
+
+# Lint
+uv run ruff check .
+
+# Try the bundled example (no network needed)
+install-skill ./examples/sample-claude-skill --name demo-architect
 ```
 
+### Quality metrics
+
+| Metric | Value |
+|---|---|
+| Tests | 141 passing |
+| Coverage | 92% |
+| Type checking | `mypy --strict` — clean |
+| Linting | `ruff` — clean |
+| Python | 3.12+ |
+
+---
+
+## License
+
+[Apache-2.0](LICENSE) — Copyright 2026 bob-skill-installer contributors.
+
+---
+
+## Related
+
+- [`docs/architecture.md`](docs/architecture.md) — full pipeline design
+- [`docs/security.md`](docs/security.md) — threat model and guarantees
+- [`docs/blog-note.md`](docs/blog-note.md) — technical deep-dive (Japanese)
+- [IBM Bob documentation](https://bob.ibm.com/)
