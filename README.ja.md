@@ -277,6 +277,12 @@ install-skill [URL] [OPTIONS]
 ╰───────────────────────────────────────────────────────────────────────────╯
 ```
 
+### 実際の使用例
+<img width="1454" height="275" alt="image" src="https://github.com/user-attachments/assets/3e43f00a-ffb2-4d9e-ad53-64856bf52f3e" />
+...
+<img width="1323" height="220" alt="image" src="https://github.com/user-attachments/assets/a343c664-b551-4dea-8425-65f81f27ff82" />
+
+
 ---
 
 ## IBM Bob スラッシュコマンド
