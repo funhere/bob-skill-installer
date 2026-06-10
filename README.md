@@ -75,9 +75,9 @@ install-skill https://github.com/org/react-skill --dry-run
 The pipeline runs 8 independent, typed stages:
 
 ```
-URL
- │
- ▼
+      URL
+       │
+       ▼
 ┌──────────────┐
 │    parse     │  Classify the source URL → ParsedSource
 └──────┬───────┘
