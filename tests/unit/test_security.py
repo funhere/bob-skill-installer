@@ -86,16 +86,39 @@ def test_browser_automation_is_warning_not_blocking(tmp_path: Path) -> None:
     assert any(f.category == "browser-automation" for f in report.findings)
 
 
-def test_scripts_are_quarantined_not_blocking(repo_factory) -> None:  # type: ignore[no-untyped-def]
-    # The malicious fixture has install.sh with a pipe-to-shell; that line blocks,
-    # but the *quarantine* finding itself is a low-severity warning.
+def test_scripts_are_inventoried(repo_factory) -> None:  # type: ignore[no-untyped-def]
+    # The malicious fixture has install.sh with a pipe-to-shell (that line blocks),
+    # and the script is recorded in the inventory. The copy/keep decision is
+    # install-policy, not a security finding.
     report = _scan(repo_factory("malicious"))
-    assert report.quarantined_scripts
-    assert any(f.category == "quarantined-scripts" for f in report.findings)
+    assert report.scripts
+    assert not any(f.category == "quarantined-scripts" for f in report.findings)
 
 
-def test_quarantine_without_block(tmp_path: Path) -> None:
+def test_clean_script_is_inventoried_without_block(tmp_path: Path) -> None:
     root = _repo(tmp_path, "scripts", {"helper.py": "print('hello, world')\n"})
     report = _scan(root)
     assert report.ok
-    assert "helper.py" in report.quarantined_scripts
+    assert "helper.py" in report.scripts
+
+
+def test_sensitive_files_inventoried_not_blocking(tmp_path: Path) -> None:
+    root = _repo(tmp_path, "secrets-file", {".env": "TOKEN=abc\n", "id_rsa": "KEY\n"})
+    report = _scan(root)
+    assert report.ok  # presence is not a block; policy is decided downstream
+    assert ".env" in report.sensitive_files
+    assert "id_rsa" in report.sensitive_files
+    # The scanner stays policy-free: no sensitive-file *finding* is emitted.
+    assert not any(f.category == "sensitive-file" for f in report.findings)
+
+
+def test_is_sensitive_path_rules() -> None:
+    from bob_skill_installer.security import is_sensitive_path
+
+    assert is_sensitive_path(Path(".env"))
+    assert is_sensitive_path(Path("config/.env.local"))
+    assert is_sensitive_path(Path("certs/server.pem"))
+    assert is_sensitive_path(Path("id_rsa"))
+    assert not is_sensitive_path(Path(".env.example"))
+    assert not is_sensitive_path(Path("id_rsa.pub"))
+    assert not is_sensitive_path(Path("README.md"))

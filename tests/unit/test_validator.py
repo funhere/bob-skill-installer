@@ -37,7 +37,7 @@ def _skill(md: str, files: list[GeneratedFile] | None = None) -> BobSkill:
 
 
 def test_valid_skill_passes() -> None:
-    files = [GeneratedFile(relative_path=Path("docs/README.md"), content="x")]
+    files = [GeneratedFile.text(Path("docs/README.md"), "x")]
     result = validate_skill(_skill(_GOOD_MD, files))
     assert result.ok
     assert result.warnings == []
@@ -63,7 +63,7 @@ def test_missing_required_field_blocks() -> None:
 
 def test_unterminated_code_fence_warns() -> None:
     md = _GOOD_MD + "\n```python\nprint(1)\n"
-    result = validate_skill(_skill(md, [GeneratedFile(relative_path=Path("docs/x.md"), content="x")]))
+    result = validate_skill(_skill(md, [GeneratedFile.text(Path("docs/x.md"), "x")]))
     assert result.ok  # non-blocking
     assert any(f.category == "markdown" for f in result.warnings)
 
@@ -74,7 +74,7 @@ def test_no_heading_warns() -> None:
         "source: https://x\nauthor: t\nconverted_from: claude\n"
         "created_at: 2026-01-01T00:00:00Z\n---\n\nPlain body with no markdown headings.\n"
     )
-    result = validate_skill(_skill(md, [GeneratedFile(relative_path=Path("docs/x.md"), content="x")]))
+    result = validate_skill(_skill(md, [GeneratedFile.text(Path("docs/x.md"), "x")]))
     assert any(f.category == "markdown" for f in result.warnings)
 
 

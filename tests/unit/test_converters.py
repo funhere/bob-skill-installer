@@ -54,11 +54,75 @@ def test_name_derived_from_repo_when_no_frontmatter_name(
     assert skill.metadata.name == "prompt-pack"
 
 
-def test_docs_collected_but_no_scripts(repo_factory: Callable[[str], Path]) -> None:
+def test_files_preserved_at_original_paths(
+    repo_factory: Callable[[str], Path],
+) -> None:
     skill = _convert(repo_factory("claude"))
     paths = {str(f.relative_path) for f in skill.files}
-    assert any(p.startswith("docs/") for p in paths)
-    assert not any(p.endswith(".sh") for p in paths)
+    # README is bundled at its ORIGINAL path (not buried under docs/).
+    assert "README.md" in paths
+    assert not any(p.startswith("docs/") for p in paths)
+    # The primary CLAUDE.md was consumed into SKILL.md, not duplicated.
+    assert "CLAUDE.md" not in paths
+
+
+def test_scripts_included_by_default_excluded_on_opt_out(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    (root / "scripts").mkdir(parents=True)
+    (root / "CLAUDE.md").write_text(
+        "---\nname: s\ndescription: d\n---\n# S\n## Objective\nx\n", encoding="utf-8"
+    )
+    (root / "scripts" / "run.sh").write_text("#!/bin/sh\necho hi\n", encoding="utf-8")
+    (root / "data.json").write_text('{"k": 1}', encoding="utf-8")
+    analysis = analyze_repo(root)
+    url = "https://github.com/org/s"
+
+    default_skill = convert(analysis, ConversionContext(source_url=url))
+    default_paths = {str(f.relative_path) for f in default_skill.files}
+    assert "data.json" in default_paths  # non-markdown asset preserved
+    assert "scripts/run.sh" in default_paths  # script bundled by default
+
+    no_scripts = convert(
+        analysis, ConversionContext(source_url=url, exclude_scripts=True)
+    )
+    paths = {str(f.relative_path) for f in no_scripts.files}
+    assert "scripts/run.sh" not in paths  # excluded on opt-out
+    assert "data.json" in paths  # other files still preserved
+
+
+def test_secret_files_included_by_default_excluded_on_opt_out(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "CLAUDE.md").write_text(
+        "---\nname: s\ndescription: d\n---\n# S\n## Objective\nx\n", encoding="utf-8"
+    )
+    (root / ".env").write_text("API_KEY=supersecret\n", encoding="utf-8")
+    (root / "server.pem").write_text("-----BEGIN PRIVATE KEY-----\n", encoding="utf-8")
+    analysis = analyze_repo(root)
+    url = "https://github.com/org/s"
+
+    default_skill = convert(analysis, ConversionContext(source_url=url))
+    default_paths = {str(f.relative_path) for f in default_skill.files}
+    assert ".env" in default_paths  # full fidelity: secrets copied by default
+    assert "server.pem" in default_paths
+
+    no_secrets = convert(analysis, ConversionContext(source_url=url, exclude_secrets=True))
+    paths = {str(f.relative_path) for f in no_secrets.files}
+    assert ".env" not in paths  # excluded on opt-out
+    assert "server.pem" not in paths
+
+
+def test_binary_assets_preserved_intact(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "CLAUDE.md").write_text(
+        "---\nname: s\ndescription: d\n---\n# S\n## Objective\nx\n", encoding="utf-8"
+    )
+    png = b"\x89PNG\r\n\x1a\n\x00\x01\x02\x03\xff\xfe"
+    (root / "logo.png").write_bytes(png)
+    skill = _convert(root)
+    asset = next(f for f in skill.files if str(f.relative_path) == "logo.png")
+    assert asset.data == png  # bytes preserved exactly, not mangled as text
 
 
 def test_author_override(repo_factory: Callable[[str], Path]) -> None:

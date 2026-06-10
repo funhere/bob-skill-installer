@@ -103,7 +103,7 @@ def test_warnings_propagate_to_report(
     tmp_path: Path,
     patch_fetcher: Callable[[Path], None],
 ) -> None:
-    # A repo containing a harmless script triggers the quarantine warning.
+    # A repo containing a harmless script triggers the script-bundled warning.
     root = tmp_path / "src"
     root.mkdir()
     (root / "CLAUDE.md").write_text(
@@ -114,3 +114,38 @@ def test_warnings_propagate_to_report(
     report = run_install(_opts(tmp_path))
     assert report.status is InstallStatus.SUCCESS_WITH_WARNINGS
     assert any("script" in w.lower() for w in report.warnings)
+
+
+def test_secrets_copied_by_default_with_security_warning(
+    tmp_path: Path,
+    patch_fetcher: Callable[[Path], None],
+) -> None:
+    root = tmp_path / "src"
+    root.mkdir()
+    (root / "CLAUDE.md").write_text(
+        "---\nname: t\ndescription: d\n---\n# T\n## Objective\nx\n"
+    )
+    (root / ".env").write_text("TOKEN=secret\n")
+    patch_fetcher(root)
+    report = run_install(_opts(tmp_path))
+    installed = Path(report.target)
+    assert (installed / ".env").is_file()  # full fidelity by default
+    assert any(w.startswith("SECURITY:") for w in report.warnings)
+
+
+def test_no_scripts_no_secrets_exclude(
+    tmp_path: Path,
+    patch_fetcher: Callable[[Path], None],
+) -> None:
+    root = tmp_path / "src"
+    (root / "scripts").mkdir(parents=True)
+    (root / "CLAUDE.md").write_text(
+        "---\nname: t\ndescription: d\n---\n# T\n## Objective\nx\n"
+    )
+    (root / "scripts" / "run.sh").write_text("#!/bin/sh\necho hi\n")
+    (root / ".env").write_text("TOKEN=secret\n")
+    patch_fetcher(root)
+    report = run_install(_opts(tmp_path, exclude_scripts=True, exclude_secrets=True))
+    installed = Path(report.target)
+    assert not (installed / ".env").exists()
+    assert not (installed / "scripts" / "run.sh").exists()

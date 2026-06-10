@@ -29,7 +29,7 @@ def _skill(name: str = "demo", version: str = "0.1.0") -> BobSkill:
     return BobSkill(
         metadata=meta,
         skill_md=md,
-        files=[GeneratedFile(relative_path=Path("docs/README.md"), content="hi")],
+        files=[GeneratedFile.text(Path("docs/README.md"), "hi")],
     )
 
 
