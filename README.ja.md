@@ -281,6 +281,10 @@ install-skill [URL] [OPTIONS]
 <img width="1454" height="275" alt="image" src="https://github.com/user-attachments/assets/3e43f00a-ffb2-4d9e-ad53-64856bf52f3e" />
 ...
 <img width="1323" height="220" alt="image" src="https://github.com/user-attachments/assets/a343c664-b551-4dea-8425-65f81f27ff82" />
+...
+<img width="1454" height="270" alt="image" src="https://github.com/user-attachments/assets/8e039b0f-dade-42f7-aa81-468e8a21f781" />
+...
+<img width="277" height="668" alt="image" src="https://github.com/user-attachments/assets/f351f014-3c9a-4e4c-ac56-63f6d7d0d3e2" />
 
 
 ---
