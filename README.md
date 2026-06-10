@@ -290,6 +290,34 @@ The `/install-skill` Bob slash command (`.bob/commands/install-skill.md`) wraps 
 /install-skill https://github.com/org/react-skill --global --no-secrets
 ```
 
+### 実行レポートの例
+<img width="606" height="787" alt="image" src="https://github.com/user-attachments/assets/a79f44c6-eba9-49cd-96b9-52467497700d" />
+
+```text
+┌─────────────────┐
+│ install-skill   │
+│ mcp-builder     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ mcp-builder     │
+│ Skill実行       │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ slack_mcp       │
+│ MCP生成         │
+└─────────────────┘
+```
+先ほどインストールした mcp-builder Skill を呼び出し、slack_mcp を生成します。
+
+<img width="588" height="683" alt="image" src="https://github.com/user-attachments/assets/157f8d72-2b02-4635-8679-d3b3dfb85253" />
+...
+<img width="561" height="631" alt="image" src="https://github.com/user-attachments/assets/ca7da473-1eac-46cd-8859-e1ea08f6f826" />
+
+
 ---
 
 ## Project Structure
