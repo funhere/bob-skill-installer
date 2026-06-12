@@ -17,7 +17,7 @@
 Point it at a public GitHub/GitLab/Git repository or a ZIP URL, and it automatically fetches, analyzes, converts, validates, and installs the skill into IBM Bob — with zero manual steps.
 
 ```bash
-install-skill https://github.com/awesome-skills/react-architect --project
+install-skill https://github.com/obra/superpowers --project
 ```
 
 That's it.
@@ -65,7 +65,7 @@ install-skill https://github.com/org/react-skill --global
 install-skill https://github.com/org/react-skill --dry-run
 
 # From inside IBM Bob (slash command)
-/install-skill https://github.com/org/react-skill --project
+/install-skill https://github.com/org/react-skill--project
 ```
 
 ---
