@@ -56,16 +56,16 @@ uv pip install -e ".[dev]"
 
 ```bash
 # Install into the current project (./.bob/skills/)
-install-skill https://github.com/org/react-skill
+install-skill https://github.com/obra/superpowers
 
 # Install globally (~/.bob/skills/)
-install-skill https://github.com/org/react-skill --global
+install-skill https://github.com/obra/superpowers --global
 
 # Preview everything without writing to disk
-install-skill https://github.com/org/react-skill --dry-run
+install-skill https://github.com/obra/superpowers --dry-run
 
 # From inside IBM Bob (slash command)
-/install-skill https://github.com/org/react-skill--project
+/install-skill https://github.com/obra/superpowers --project
 ```
 
 ---
