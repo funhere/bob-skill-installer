@@ -17,7 +17,7 @@
 只需将 GitHub / GitLab / Git 仓库或 ZIP 链接传给它，工具将自动完成获取、解析、转换、验证、安装的全流程——零手动操作。
 
 ```bash
-install-skill https://github.com/awesome-skills/react-architect --project
+install-skill https://github.com/obra/superpowers --project
 ```
 
 就这一行。
@@ -56,16 +56,16 @@ uv pip install -e ".[dev]"
 
 ```bash
 # 安装到项目范围（./.bob/skills/）
-install-skill https://github.com/org/react-skill
+install-skill https://github.com/obra/superpowers
 
 # 安装到全局范围（~/.bob/skills/）
-install-skill https://github.com/org/react-skill --global
+install-skill https://github.com/obra/superpowers --global
 
 # 预览所有阶段，不写入磁盘
-install-skill https://github.com/org/react-skill --dry-run
+install-skill https://github.com/obra/superpowers --dry-run
 
 # 在 IBM Bob 中使用斜杠命令
-/install-skill https://github.com/org/react-skill --project
+/install-skill https://github.com/obra/superpowers --project
 ```
 
 ---
