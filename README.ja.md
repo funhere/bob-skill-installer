@@ -17,7 +17,7 @@
 GitHub / GitLab / Git リポジトリや ZIP の URL を渡すだけで、ソース取得・形式解析・変換・検証・インストールまでを自動で完結します。手作業ゼロ。
 
 ```bash
-install-skill https://github.com/awesome-skills/react-architect --project
+install-skill https://github.com/obra/superpowers --project
 ```
 
 以上です。
@@ -56,16 +56,16 @@ uv pip install -e ".[dev]"
 
 ```bash
 # プロジェクトスコープ（./.bob/skills/）にインストール
-install-skill https://github.com/org/react-skill
+install-skill https://github.com/obra/superpowers
 
 # グローバルスコープ（~/.bob/skills/）にインストール
-install-skill https://github.com/org/react-skill --global
+install-skill https://github.com/obra/superpowers --global
 
 # 書き込みなしで全ステージを確認（dry-run）
-install-skill https://github.com/org/react-skill --dry-run
+install-skill https://github.com/obra/superpowers --dry-run
 
 # IBM Bob スラッシュコマンドから実行
-/install-skill https://github.com/org/react-skill --project
+/install-skill https://github.com/obra/superpowers --project
 ```
 
 ---
