@@ -377,6 +377,52 @@ bob-skill-installer/
 
 ---
 
+## anysearch 配置
+
+[`anysearch`](https://github.com/anysearch-ai/anysearch-skill) 是驱动斜杠命令第 3 步的实时搜索技能，负责在转换前抓取并摘要目标仓库，让 Agent 理解其语义意图。**已预装在 `.bob/skills/anysearch/`**，只需配置 API Key 即可使用。
+
+### 获取 API Key
+
+访问 **<https://anysearch.com/console/api-keys>** 注册并创建免费的 API Key。
+
+### 配置方式
+
+**方式 A — `.env` 文件（推荐用于项目）**
+
+```bash
+cp .bob/skills/anysearch/.env.example .bob/skills/anysearch/.env
+# 编辑文件并填入：
+# ANYSEARCH_API_KEY=<your_api_key_here>
+```
+
+**方式 B — 环境变量（推荐用于 CI / 全局使用）**
+
+```bash
+# Linux / macOS
+export ANYSEARCH_API_KEY=<your_api_key_here>
+
+# Windows CMD
+set ANYSEARCH_API_KEY=<your_api_key_here>
+
+# Windows PowerShell
+$env:ANYSEARCH_API_KEY="<your_api_key_here>"
+```
+
+**方式 C — CLI 参数（临时使用）**
+
+```bash
+# 通过斜杠命令传入 --api_key
+/install-skill https://github.com/org/skill --project
+```
+
+> **优先级顺序：** `--api_key` CLI 参数 › `.env` 文件 › 环境变量 › 匿名访问（有频率限制）
+
+不配置 API Key 也可以匿名访问，但有频率限制。日常使用建议申请免费 API Key。
+
+更多详情请参阅 [anysearch-skill 仓库](https://github.com/anysearch-ai/anysearch-skill)。
+
+---
+
 ## 开发
 
 ```bash
@@ -422,4 +468,5 @@ install-skill ./examples/sample-claude-skill --name demo-architect
 - [`docs/architecture.md`](docs/architecture.md) — 完整流水线设计
 - [`docs/security.md`](docs/security.md) — 安全模型与保证
 - [`docs/blog-note.md`](docs/blog-note.md) — 技术深度解析（日文）
+- [anysearch-skill](https://github.com/anysearch-ai/anysearch-skill) — 实时搜索技能（预装依赖技能）
 - [IBM Bob 文档](https://bob.ibm.com/)
