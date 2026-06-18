@@ -360,20 +360,27 @@ bob-skill-installer/
 
 ---
 
-anysearch Setup
-anysearch is the real-time search skill that powers Step 3 of the slash command — it fetches and summarizes the target repository so the agent can understand its intent before conversion. It is pre-installed in .bob/skills/anysearch/ and requires only an API key to activate.
+## anysearch Setup
 
-Get an API key
-Visit https://anysearch.com/console/api-keys to sign up and create a free API key.
+[`anysearch`](https://github.com/anysearch-ai/anysearch-skill) is the real-time search skill that powers Step 3 of the slash command — it fetches and summarizes the target repository so the agent can understand its intent before conversion. **It is pre-installed** in `.bob/skills/anysearch/` and requires only an API key to activate.
 
-Configure the key
-Option A — .env file (recommended for projects)
+### Get an API key
 
+Visit **<https://anysearch.com/console/api-keys>** to sign up and create a free API key.
+
+### Configure the key
+
+**Option A — `.env` file (recommended for projects)**
+
+```bash
 cp .bob/skills/anysearch/.env.example .bob/skills/anysearch/.env
 # Edit the file and set:
 # ANYSEARCH_API_KEY=<your_api_key_here>
-Option B — environment variable (recommended for CI / global use)
+```
 
+**Option B — environment variable (recommended for CI / global use)**
+
+```bash
 # Linux / macOS
 export ANYSEARCH_API_KEY=<your_api_key_here>
 
@@ -382,15 +389,20 @@ set ANYSEARCH_API_KEY=<your_api_key_here>
 
 # Windows PowerShell
 $env:ANYSEARCH_API_KEY="<your_api_key_here>"
-Option C — CLI flag (one-off)
+```
 
+**Option C — CLI flag (one-off)**
+
+```bash
 install-skill https://github.com/org/skill --project
 # anysearch picks up --api_key if passed through the slash command
-Key priority order: --api_key CLI flag › .env file › environment variable › anonymous (rate-limited)
+```
+
+> **Key priority order:** `--api_key` CLI flag › `.env` file › environment variable › anonymous (rate-limited)
 
 Anonymous access is available without a key but subject to lower rate limits. For regular use, a free API key is strongly recommended.
 
-For more details, see the anysearch-skill repository.
+For more details, see the [anysearch-skill repository](https://github.com/anysearch-ai/anysearch-skill).
 
 ---
 
@@ -439,4 +451,5 @@ install-skill ./examples/sample-claude-skill --name demo-architect
 - [`docs/architecture.md`](docs/architecture.md) — full pipeline design
 - [`docs/security.md`](docs/security.md) — threat model and guarantees
 - [`docs/blog-note.md`](docs/blog-note.md) — technical deep-dive (Japanese)
+- [anysearch-skill](https://github.com/anysearch-ai/anysearch-skill) — real-time search skill (pre-installed dependency)
 - [IBM Bob documentation](https://bob.ibm.com/)
