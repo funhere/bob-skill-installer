@@ -49,6 +49,8 @@ install-skill https://github.com/obra/superpowers --project
 ```bash
 git clone https://github.com/funhere/bob-skill-installer
 cd bob-skill-installer
+uv venv
+source .venv/bin/activate
 uv pip install -e ".[dev]"
 ```
 
