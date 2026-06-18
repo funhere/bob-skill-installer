@@ -27,7 +27,7 @@ That's it.
 ## Features
 
 - **Universal source support** — GitHub, GitLab, generic Git, direct ZIP, local directory
-- **7 format converters** — Claude, Cursor, Windsurf, Cline, RooCode, OpenAI GPT, generic prompt repos
+- **Format converters** — Claude, Cursor, Windsurf, Cline, RooCode, OpenAI GPT, generic prompt repos
 - **Full-fidelity install** — every file preserved at its original path, binary-safe
 - **Security gate** — blocks `curl | bash`, credential exfiltration, destructive shell, MCP auto-trust before anything is written
 - **Atomic install** — staged write + swap; `--upgrade` keeps a `.bak`; no half-written skills on crash
