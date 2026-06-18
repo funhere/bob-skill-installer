@@ -360,6 +360,40 @@ bob-skill-installer/
 
 ---
 
+anysearch Setup
+anysearch is the real-time search skill that powers Step 3 of the slash command — it fetches and summarizes the target repository so the agent can understand its intent before conversion. It is pre-installed in .bob/skills/anysearch/ and requires only an API key to activate.
+
+Get an API key
+Visit https://anysearch.com/console/api-keys to sign up and create a free API key.
+
+Configure the key
+Option A — .env file (recommended for projects)
+
+cp .bob/skills/anysearch/.env.example .bob/skills/anysearch/.env
+# Edit the file and set:
+# ANYSEARCH_API_KEY=<your_api_key_here>
+Option B — environment variable (recommended for CI / global use)
+
+# Linux / macOS
+export ANYSEARCH_API_KEY=<your_api_key_here>
+
+# Windows CMD
+set ANYSEARCH_API_KEY=<your_api_key_here>
+
+# Windows PowerShell
+$env:ANYSEARCH_API_KEY="<your_api_key_here>"
+Option C — CLI flag (one-off)
+
+install-skill https://github.com/org/skill --project
+# anysearch picks up --api_key if passed through the slash command
+Key priority order: --api_key CLI flag › .env file › environment variable › anonymous (rate-limited)
+
+Anonymous access is available without a key but subject to lower rate limits. For regular use, a free API key is strongly recommended.
+
+For more details, see the anysearch-skill repository.
+
+---
+
 ## Development
 
 ```bash
