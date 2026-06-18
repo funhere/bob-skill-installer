@@ -371,6 +371,52 @@ bob-skill-installer/
 
 ---
 
+## anysearch のセットアップ
+
+[`anysearch`](https://github.com/anysearch-ai/anysearch-skill) はスラッシュコマンドのステップ3を担うリアルタイム検索スキルです。変換前にターゲットリポジトリを取得・要約し、エージェントがその意図を理解できるようにします。**`.bob/skills/anysearch/` にあらかじめインストール済み**です。API キーを設定するだけで使えます。
+
+### API キーの取得
+
+**<https://anysearch.com/console/api-keys>** にアクセスして無料の API キーを取得してください。
+
+### API キーの設定方法
+
+**方法 A — `.env` ファイル（プロジェクト向け・推奨）**
+
+```bash
+cp .bob/skills/anysearch/.env.example .bob/skills/anysearch/.env
+# ファイルを編集して設定：
+# ANYSEARCH_API_KEY=<your_api_key_here>
+```
+
+**方法 B — 環境変数（CI / グローバル利用向け・推奨）**
+
+```bash
+# Linux / macOS
+export ANYSEARCH_API_KEY=<your_api_key_here>
+
+# Windows CMD
+set ANYSEARCH_API_KEY=<your_api_key_here>
+
+# Windows PowerShell
+$env:ANYSEARCH_API_KEY="<your_api_key_here>"
+```
+
+**方法 C — CLI フラグ（一時的な用途）**
+
+```bash
+# スラッシュコマンド経由で --api_key を渡す
+/install-skill https://github.com/org/skill --project
+```
+
+> **優先順位：** `--api_key` CLI フラグ › `.env` ファイル › 環境変数 › 匿名アクセス（レート制限あり）
+
+API キーなしの匿名アクセスも可能ですが、レート制限があります。日常的に使用する場合は無料の API キー取得を推奨します。
+
+詳細は [anysearch-skill リポジトリ](https://github.com/anysearch-ai/anysearch-skill) を参照してください。
+
+---
+
 ## 開発
 
 ```bash
@@ -416,4 +462,5 @@ install-skill ./examples/sample-claude-skill --name demo-architect
 - [`docs/architecture.md`](docs/architecture.md) — パイプラインの全体設計
 - [`docs/security.md`](docs/security.md) — セキュリティモデルと保証
 - [`docs/blog-note.md`](docs/blog-note.md) — 技術解説ブログ（日本語）
+- [anysearch-skill](https://github.com/anysearch-ai/anysearch-skill) — リアルタイム検索スキル（同梱済み依存スキル）
 - [IBM Bob ドキュメント](https://bob.ibm.com/)
