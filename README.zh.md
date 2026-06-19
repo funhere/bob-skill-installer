@@ -1,6 +1,6 @@
 # bob-skill-installer
 
-> **一条命令，任意技能，直达 IBM Bob。**
+> **一条命令，任意AI skills，直达 IBM Bob。**
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
@@ -470,3 +470,14 @@ install-skill ./examples/sample-claude-skill --name demo-architect
 - [`docs/blog-note.md`](docs/blog-note.md) — 技术深度解析（日文）
 - [anysearch-skill](https://github.com/anysearch-ai/anysearch-skill) — 实时搜索技能（预装依赖技能）
 - [IBM Bob 文档](https://bob.ibm.com/)
+
+
+---
+
+## 免责声明
+
+本项目可能帮助用户发现、安装或使用第三方 Skill。
+
+在使用任何 Skill 之前，用户应自行评估其安全性、隐私影响、许可证要求以及合规性风险，并确认其符合所在组织的安全策略、治理要求及相关许可条款。
+
+本项目维护者不对任何第三方 Skill、代码、内容或服务的安全性、合法性、可用性或适用性承担责任。
