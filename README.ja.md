@@ -464,3 +464,14 @@ install-skill ./examples/sample-claude-skill --name demo-architect
 - [`docs/blog-note.md`](docs/blog-note.md) — 技術解説ブログ（日本語）
 - [anysearch-skill](https://github.com/anysearch-ai/anysearch-skill) — リアルタイム検索スキル（同梱済み依存スキル）
 - [IBM Bob ドキュメント](https://bob.ibm.com/)
+
+
+---
+
+## 免責事項
+
+本プロジェクトは、サードパーティ製 Skill の検索、導入、利用を支援する場合があります。
+
+Skill を利用する前に、利用者自身の責任において、安全性、プライバシー、ライセンス条件、およびコンプライアンス要件を確認してください。また、自社のセキュリティポリシーやガバナンス基準に適合していることを十分にご確認ください。
+
+本プロジェクトの開発者およびメンテナーは、サードパーティ製 Skill、コード、コンテンツ、またはサービスに関して、一切の責任を負いません。
